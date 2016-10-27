@@ -1,3 +1,18 @@
+# Copyright 2016 (C) UnitedStack Inc.
+#
+# Author: Li Tianqing <tianqing@unitedstack.com>
+# Author: Yao Ning <yaoning@unitedstack.com>
+#
+# == Class: kalimdor::configs::debug
+#
+# setting debug configurations for each node
+#
+# [*enable_default_debug*] Whether or not enable default debug level setting by Ceph
+#   Optional. Default to true
+#   If false, all modules' debug level sets to '0/0'
+#   Althrough disable all debug information can improve performance
+#   it may lead to hard troubleshooting when dealing with BUGs
+
 class kalimdor::configs::debug (
   $enable_default_debug     = true,
 ) {
@@ -58,8 +73,6 @@ class kalimdor::configs::debug (
       debug_fuse            => undef, # "1\/5"
   }
 
-  #notify { "debug is $enable_default_debug": }
-
   $default_val = $enable_default_debug ? {
         false   => '0/0',
         default => undef,
@@ -69,11 +82,8 @@ class kalimdor::configs::debug (
 
   $debug_configs.each |$key, $val| {
    
-    # the first priority is ceph::debug::$key from hieradata
-    
     $set_val = $debug_configs_in_hiera[$key]
  
-    # the second priority is kalimdor::options::debug::debug_options class
     if $set_val {
         $really_val = $set_val
     } elsif $val {

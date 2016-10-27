@@ -8,20 +8,8 @@
 # init takes care of defining roles in ceph cluster for each node
 # it also takes care of the global configuration values
 #
-# [*fsid*] The cluster's fsid.
-#   Mandatory. Get one with `uuidgen -r`.
-#
 # [*cluster*] The ceph cluster
 #   Optional. Same default as ceph.
-#
-# [*authentication_type*] Authentication type.
-#   Optional. none or 'cephx'. Defaults to 'cephx'.
-#
-# [*public_network*] The address of the public network.
-#   Optional. {public-network-ip/netmask}
-#
-# [*cluster_network*] The address of the cluster network.
-#   Optional. {cluster-network-ip/netmask}
 #
 # [*enable_mon*] Whether or not enable Monitor on the node
 #   Optional. Default to false
@@ -47,24 +35,15 @@
 class kalimdor(
   $cluster                      = 'ceph',
   $authentication_type          = 'cephx',
-
-  $public_network               = undef,
-  $cluster_network              = undef,
-
-  $ensure_mon                   = absent,
-  $ensure_osd                   = absent,
-  $ensure_mds                   = absent,
-  $ensure_rgw                   = absent,
-  $ensure_client                = absent,
-
-  $enable_default_debug         = undef,
+  $enable_mon                   = 'false',
+  $enable_osd                   = 'false',
+  $enable_mds                   = 'false',
+  $enable_rgw                   = 'false',
+  $enable_client                = 'false',
 ){
 
   include ::stdlib
   
-  # Any ceph roles is defined on this nodes
-  $enable_ceph = $enable_mon or $enable_osd or $enable_mds or $enable_rgw or $enable_client
-
   # Ceph repository configurations
   include kalimdor::params
   include kalimdor::repo
@@ -76,16 +55,29 @@ class kalimdor(
   include kalimdor::configs::debug
 
   # We don't want to use puppet-ceph Class Ceph, but need to deal with calling dependency
-  class {'ceph':
-      fsid                     => $test_set_val,
-      ensure                   => absent,
+  # Any ceph roles is defined on this nodes
+  $enable_ceph = $enable_mon or $enable_osd or $enable_mds or $enable_rgw or $enable_client
+  if $enable_ceph {
+      $ceph_ensure = present
+  } else {
+      $ceph_ensure = absent
   }
-  #$test_set_val = getvar("kalimdor::global::fsid")
-  #notify{"my_test": message => "${test_set_val}"}
- 
+
+  class {'ceph':
+      fsid                     => $kalimdor::configs::global::fsid,
+      ensure                   => $ceph_ensure,
+      authentication_type      => $authentication_type,
+  }
+
+  # Whether enable Monitor on this nodes?
+  if $enable_mon {
+      $mon_ensure = present
+  } else {
+      $mon_ensure = absent
+  }
   class {'kalimdor::mon':
       cluster                  => $cluster,
-      ensure                   => $ensure_mon,
+      ensure                   => $mon_ensure,
       authentication_type      => $authentication_type,
   }
 

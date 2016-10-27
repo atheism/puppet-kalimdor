@@ -4,7 +4,7 @@
 #
 # == Class: kalimdor::params::global
 #
-# setting global parameters for each node
+# setting global configurations for each node
 
 class kalimdor::configs::global { 
   $global_configs = {

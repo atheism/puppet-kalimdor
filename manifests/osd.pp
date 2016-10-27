@@ -13,7 +13,7 @@ class kalimdor::osd (
   $osd_device_dict        = {},
   $bootstrap_osd_key      = ::kalimdor::params::osd_bootstrap_key,
   $enable_dangerous_operation = ::kalimdor::params::enable_dangerous_operation,
-  $disk_type              = undef, 
+  $osd_disk_type              = undef, 
 ){
     include stdlib
     include ::kalimdor::params
@@ -28,7 +28,7 @@ class kalimdor::osd (
     }
 
     #set osd configuration in ceph.conf
-    case $disk_type {
+    case $osd_disk_type {
         ssd: {
             class { "kalimdor::options::osd":
                 host_osd_type      => 'fast', 

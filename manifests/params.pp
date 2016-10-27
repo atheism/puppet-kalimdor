@@ -8,5 +8,4 @@ class kalimdor::params {
   $rgw_bootstrap_key                        = 'AQCTg71RsNIHORAAW+O6FCMZWBjmVfMIPk3MhQ=='
 
   $enable_default_debug                     = true
-  $enable_dangerous_operation               = false
 }

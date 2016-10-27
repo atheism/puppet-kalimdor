@@ -70,10 +70,10 @@ class kalimdor(
   include kalimdor::repo
 
   # Set global options for Ceph
-  include kalimdor::options::global
+  include kalimdor::configs::global
  
   # Set debug options for Ceph
-  include kalimdor::options::debug
+  include kalimdor::configs::debug
 
   # We don't want to use puppet-ceph Class Ceph, but need to deal with calling dependency
   class {'ceph':

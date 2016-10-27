@@ -1,8 +1,8 @@
-class kalimdor::options::debug (
+class kalimdor::configs::debug (
   $enable_default_debug     = true,
 ) {
 
-  $debug_options = {
+  $debug_configs = {
       debug_none            => undef, # "0\/5"
       debug_lockdep         => undef, # "0\/1"
       debug_context         => undef, # "0\/1"
@@ -65,10 +65,13 @@ class kalimdor::options::debug (
         default => undef,
   }
 
-  $debug_options.each |$key, $val| {
+  $debug_configs_in_hiera = hiera('kalimdor::debug', {})
+
+  $debug_configs.each |$key, $val| {
    
-    # the first priority is ceph::debug::$key from hieradata 
-    $set_val = getvar("kalimdor::debug::$key")
+    # the first priority is ceph::debug::$key from hieradata
+    
+    $set_val = $debug_configs_in_hiera[$key]
  
     # the second priority is kalimdor::options::debug::debug_options class
     if $set_val {

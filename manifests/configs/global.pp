@@ -6,8 +6,8 @@
 #
 # setting global parameters for each node
 
-class kalimdor::options::global { 
-  $global_params = {
+class kalimdor::configs::global { 
+  $global_configs = {
     'fsid'                                 => undef,
     'cluster_network'                      => undef,
     'public_network'                       => undef,
@@ -17,12 +17,14 @@ class kalimdor::options::global {
     'sign_messages'                        => true,
   }
 
-  $global_params_in_hiera = hiera('kalimdor::global') |$key_in_hiera| {"Key '${key_in_hiera}' not found"}
-  $global_params.each |$key, $val| {
+  $global_configs_in_hiera = hiera('kalimdor::global', {})
+  $global_configs.each |$key, $val| {
  
-      $set_val = $global_params_in_hiera[$key]
+      $set_val = $global_configs_in_hiera[$key]
 
-      if $set_val {
+      # undef automatically becomes an empty string, fix me if needed
+      # value 'false' should be considered as a valid value, undef will convert to false if it is a bool type
+      if $set_val != '' {
 
           $really_val = $set_val
       } else {
@@ -31,12 +33,13 @@ class kalimdor::options::global {
       }
 
       # set options in ceph.conf
-      if $really_val != '' { # undef automatically becomes an empty string, fix me if needed
+      if $really_val != '' {
           ceph_config {
               "global/${key}":   value => $really_val;
           }
       } else {
-          fail("global options ${key} must be set explicitly. undef value is not allowed")
+          # global configs must be explicitly set
+          fail("global configs ${key} must be set explicitly. undef value is not allowed")
       }
   }
 }

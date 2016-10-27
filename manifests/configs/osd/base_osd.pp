@@ -1,6 +1,6 @@
-class kalimdor::options::base_osd {
+class kalimdor::configs::osd::base_osd {
 
-  $osd_options = {
+  $osd_configs = {
     # osd client
     osd_client_message_cap            => undef,
     osd_client_message_size_cap       => undef,

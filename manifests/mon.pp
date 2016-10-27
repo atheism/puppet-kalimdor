@@ -31,39 +31,13 @@ class kalimdor::mon (
   $key                  = $::kalimdor::params::mon_key,
 ) {
 
-    include kalimdor::options::mon
-    $base_mon_options = $kalimdor::options::mon::mon_options
-
     $mon_id = $::hostname
     $mon_data =  "/var/lib/ceph/mon/${cluster}-${mon_id}"
 
     if $ensure == present {
-        $base_mon_options.each |$key, $val| {
-
-            # the first priority is ceph class
-            $set_val = getvar("ceph::mon::$key")
-
-            # the second priority is kalimdor::options::mon::mon_options class
-            if $set_val {
-
-                $really_val = $set_val
-            } else {
-
-                $really_val = $val
-            }
-
-            # set options in ceph.conf
-            if $really_val {
-                notify{"params: $key": message => "$really_val"}
-                ceph_config {
-                    "mon/${key}":   value => $really_val;
-                }
-            } else {
-                ceph_config {
-                    "mon/${key}":   ensure => absent;
-                }
-            }
-        }
+        # set MON configs in ceph.conf
+        include kalimdor::configs::mon
+        
         ::ceph::mon { $mon_id:
             ensure                 => present,
             mon_enable             => true,
@@ -85,11 +59,6 @@ class kalimdor::mon (
             inject_keyring => "/var/lib/ceph/mon/${cluster}-${mon_id}/keyring",
         }
     } else {
-    #    $base_mon_options.each |$key, $val| {
-    #        ceph_config {
-    #            "mon/${key}":   ensure => absent;
-    #        }
-    #    }
         ::ceph::mon { $mon_id:
             ensure                 => absent,
             mon_enable             => false,

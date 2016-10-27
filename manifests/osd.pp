@@ -30,17 +30,17 @@ class kalimdor::osd (
     #set osd configuration in ceph.conf
     case $osd_disk_type {
         ssd: {
-            class { "kalimdor::options::osd":
+            class { "kalimdor::configs::osd":
                 host_osd_type      => 'fast', 
             }
         }
         sata: {
-            class { "kalimdor::options::osd":
+            class { "kalimdor::configs::osd":
                 host_osd_type      => 'slow',
             }
         }
         mix: {
-            class { "kalimdor::options::osd":
+            class { "kalimdor::configs::osd":
                 host_osd_type      => 'fast',
             }
         }

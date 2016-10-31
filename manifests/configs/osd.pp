@@ -22,31 +22,9 @@ class kalimdor::configs::osd(
             include kalimdor::configs::osd::base_osd
         }
     }
-    $osd_configs.each |$key, $val| {
- 
-        $set_val = $osd_configs_in_hiera[$key]
-        $tune_val = $osd_configs_in_tune[$key]
+    $osd_final_configs = merge($osd_configs, $osd_configs_in_hiera)
 
-        if $set_val {
-
-            $really_val = $set_val
-        } elsif $tune_val {
-
-            $really_val = $tune_val
-        } else {
-        
-            $really_val = $val
-        }
-
-        # set configs in ceph.conf
-        if $really_val {
-            ceph_config {
-                "osd/${key}":   value => $really_val;
-            }   
-        } else {
-            ceph_config {
-                "osd/${key}":   ensure => absent;
-            }   
-        }
+    kalimdor::configs::configs_impl {'osd configs':
+        configs       => $osd_final_configs,
     }
 }

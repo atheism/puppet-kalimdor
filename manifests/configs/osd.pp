@@ -24,7 +24,7 @@ class kalimdor::configs::osd(
     }
     $osd_final_configs = merge($osd_configs, $osd_configs_in_hiera)
 
-    kalimdor::configs::configs_impl {'osd configs':
+    kalimdor::configs::configs_impl {'osd':
         configs       => $osd_final_configs,
     }
 }

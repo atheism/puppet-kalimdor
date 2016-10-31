@@ -6,6 +6,9 @@
 #
 # setting configurations in ceph.conf
 #
+# [*title*] The section's name in ceph.conf
+#   Mandatory.
+#
 # [*configs*] A Ceph config hash.
 #   Mandatory.
 
@@ -17,11 +20,11 @@ define kalimdor::configs::configs_impl(
         # set configs in ceph.conf
         if $val != '' {
             ceph_config {
-                "osd/${key}":   value => $val;
+                "$name/${key}":   value => $val;
             }   
         } else {
             ceph_config {
-                "osd/${key}":   ensure => absent;
+                "$name/${key}":   ensure => absent;
             }   
         }   
     }

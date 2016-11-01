@@ -14,6 +14,8 @@ class kalimdor::configs::global(
     'authentication_type'                  => undef,
     'cluster_network'                      => undef,
     'public_network'                       => undef,
+    'mon_host'                             => undef,
+    'mon_initial_members'                  => undef,
     'osd_pool_default_pg_num'              => 1024,
     'osd_pool_default_pgp_num'             => 1024,
     'osd_pool_default_size'                => 3,
@@ -23,17 +25,18 @@ class kalimdor::configs::global(
   $global_configs_in_hiera = merge($global_configs, hiera('kalimdor::global', {}))
   
   class {'ceph':
-      fsid                          => $global_configs_in_hiera[fsid],
+      fsid                          => fix_undef($global_configs_in_hiera[fsid]),
       ensure                        => $ensure,
-      keyring                       => $global_configs_in_hiera[keyring],
-      authentication_type           => $global_configs_in_hiera[authentication_type],
-      osd_pool_default_pg_num       => $global_configs_in_hiera[osd_pool_default_pg_num],
-      osd_pool_default_pgp_num      => $global_configs_in_hiera[osd_pool_default_pgp_num],
-      osd_pool_default_size         => $global_configs_in_hiera[osd_pool_default_size],
-      osd_pool_default_min_size     => $global_configs_in_hiera[osd_pool_default_min_size],
-      ms_bind_ipv6                  => $global_configs_in_hiera[ms_bind_ipv6],
-      cluster_network               => $global_configs_in_hiera[cluster_network],
-      public_network                => $global_configs_in_hiera[public_network],
+      keyring                       => fix_undef($global_configs_in_hiera[keyring]),
+      authentication_type           => fix_undef($global_configs_in_hiera[authentication_type]),
+      mon_host                      => fix_undef($global_configs_in_hiera[mon_host]),
+      mon_initial_members           => fix_undef($global_configs_in_hiera[mon_initial_members]),
+      osd_pool_default_pg_num       => fix_undef($global_configs_in_hiera[osd_pool_default_pg_num]),
+      osd_pool_default_pgp_num      => fix_undef($global_configs_in_hiera[osd_pool_default_pgp_num]),
+      osd_pool_default_size         => fix_undef($global_configs_in_hiera[osd_pool_default_size]),
+      osd_pool_default_min_size     => fix_undef($global_configs_in_hiera[osd_pool_default_min_size]),
+      ms_bind_ipv6                  => fix_undef($global_configs_in_hiera[ms_bind_ipv6]),
+      cluster_network               => fix_undef($global_configs_in_hiera[cluster_network]),
+      public_network                => fix_undef($global_configs_in_hiera[public_network]),
   }
-
 }

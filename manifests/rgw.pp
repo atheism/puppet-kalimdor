@@ -16,9 +16,15 @@ class kalimdor::rgw (
         rgw_name        => $rgw_name,
     }
 
+    if $rgw_enable {
+        $rgw_ensure   = 'running'
+    } else {
+        $rgw_ensure   = 'stopped'
+    }
+
     ceph::rgw { "radosgw.${rgw_name}":
-        rgw_ensure         => 'running',
-        rgw_enable        => $rgw_enable,
+        rgw_ensure         => $rgw_ensure,
+        rgw_enable         => $rgw_enable,
         rgw_data           => $kalimdor::rgw::base::rgw_data,
         user               => $user,
         keyring_path       => $kalimdor::rgw::base::keyring_path,

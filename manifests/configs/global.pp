@@ -20,6 +20,7 @@ class kalimdor::configs::global(
     'osd_pool_default_pgp_num'             => 1024,
     'osd_pool_default_size'                => 3,
     'osd_pool_default_min_size'            => 0,
+    'osd_journal_size'                     => 10240,
   }
 
   $global_configs_in_hiera = merge($global_configs, hiera('kalimdor::global', {}))
@@ -38,5 +39,6 @@ class kalimdor::configs::global(
       ms_bind_ipv6                  => fix_undef($global_configs_in_hiera[ms_bind_ipv6]),
       cluster_network               => fix_undef($global_configs_in_hiera[cluster_network]),
       public_network                => fix_undef($global_configs_in_hiera[public_network]),
+      osd_journal_size              => fix_undef($global_configs_in_hiera[osd_journal_size]),
   }
 }

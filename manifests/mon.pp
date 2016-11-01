@@ -34,37 +34,39 @@ class kalimdor::mon (
     $mon_id = $::hostname
     $mon_data =  "/var/lib/ceph/mon/${cluster}-${mon_id}"
 
+    # set MON configs in ceph.conf
+    include kalimdor::configs::mon
+
+    ceph::mon { $mon_id:
+        ensure                 => $ensure,
+        mon_enable             => true,
+        cluster                => $cluster,
+        authentication_type    => $authentication_type,
+        key                    => $key,
+    }
+
     if $ensure == present {
-        # set MON configs in ceph.conf
-        include kalimdor::configs::mon
-        
-        ::ceph::mon { $mon_id:
-            ensure                 => present,
-            mon_enable             => true,
-            cluster                => $cluster,
-            authentication_type    => $authentication_type,
-            key                    => $key,
-        } -> 
-        ceph::key { 'client.admin':
-            secret  => $::kalimdor::params::admin_key,
+        $keyring_path = "/etc/ceph/${cluster}.client.admin.keyring"
+        $inject       = true
+    } elsif $ensure == absent  {
+        $keyring_path = undef
+        $inject       = false
+    } else {
+        fail("ensure must be present or absent!")
+    }
+
+    ceph::key { 'client.admin':
+            secret  => $kalimdor::params::admin_key,
             cluster => $cluster,
-            keyring_path => "/etc/ceph/${cluster}.client.admin.keyring",
+            keyring_path => $keyring_path,
             cap_mon => 'allow *',
             cap_osd => 'allow *',
             cap_mds => 'allow *',
             user    => 'ceph',
             group   => 'ceph',
-            inject         => true,
+            inject         => $inject,
             inject_as_id   => 'mon.',
             inject_keyring => "/var/lib/ceph/mon/${cluster}-${mon_id}/keyring",
-        }
-    } else {
-        ::ceph::mon { $mon_id:
-            ensure                 => absent,
-            mon_enable             => false,
-            cluster                => $cluster,
-            authentication_type    => $authentication_type,
-            key                    => $key,
-        }
     }
+
 }

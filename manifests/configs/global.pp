@@ -6,40 +6,34 @@
 #
 # setting global configurations for each node
 
-class kalimdor::configs::global { 
+class kalimdor::configs::global(
+  $ensure         = present,
+){ 
   $global_configs = {
     'fsid'                                 => undef,
+    'authentication_type'                  => undef,
     'cluster_network'                      => undef,
     'public_network'                       => undef,
-    'require_signatures'                   => false,
-    'cluster_require_signatures'           => false,
-    'service_require_signatures'           => false,
-    'sign_messages'                        => true,
+    'osd_pool_default_pg_num'              => 1024,
+    'osd_pool_default_pgp_num'             => 1024,
+    'osd_pool_default_size'                => 3,
+    'osd_pool_default_min_size'            => 0,
   }
 
-  $global_configs_in_hiera = hiera('kalimdor::global', {})
-  $global_configs.each |$key, $val| {
- 
-      $set_val = $global_configs_in_hiera[$key]
-
-      # undef automatically becomes an empty string, fix me if needed
-      # value 'false' should be considered as a valid value, undef will convert to false if it is a bool type
-      if $set_val != '' {
-
-          $really_val = $set_val
-      } else {
-
-          $really_val = $val
-      }
-
-      # set options in ceph.conf
-      if $really_val != '' {
-          ceph_config {
-              "global/${key}":   value => $really_val;
-          }
-      } else {
-          # global configs must be explicitly set
-          fail("global configs ${key} must be set explicitly. undef value is not allowed")
-      }
+  $global_configs_in_hiera = merge($global_configs, hiera('kalimdor::global', {}))
+  
+  class {'ceph':
+      fsid                          => $global_configs_in_hiera[fsid],
+      ensure                        => $ensure,
+      keyring                       => $global_configs_in_hiera[keyring],
+      authentication_type           => $global_configs_in_hiera[authentication_type],
+      osd_pool_default_pg_num       => $global_configs_in_hiera[osd_pool_default_pg_num],
+      osd_pool_default_pgp_num      => $global_configs_in_hiera[osd_pool_default_pgp_num],
+      osd_pool_default_size         => $global_configs_in_hiera[osd_pool_default_size],
+      osd_pool_default_min_size     => $global_configs_in_hiera[osd_pool_default_min_size],
+      ms_bind_ipv6                  => $global_configs_in_hiera[ms_bind_ipv6],
+      cluster_network               => $global_configs_in_hiera[cluster_network],
+      public_network                => $global_configs_in_hiera[public_network],
   }
+
 }

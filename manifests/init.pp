@@ -34,12 +34,11 @@
 
 class kalimdor(
   $cluster                      = 'ceph',
-  $authentication_type          = 'cephx',
-  $enable_mon                   = 'false',
-  $enable_osd                   = 'false',
-  $enable_mds                   = 'false',
-  $enable_rgw                   = 'false',
-  $enable_client                = 'false',
+  $enable_mon                   = false,
+  $enable_osd                   = false,
+  $enable_mds                   = false,
+  $enable_rgw                   = false,
+  $enable_client                = false,
 ){
 
   include ::stdlib
@@ -48,9 +47,6 @@ class kalimdor(
   include kalimdor::params
   include kalimdor::repo
 
-  # Set global options for Ceph
-  include kalimdor::configs::global
- 
   # Set debug options for Ceph
   include kalimdor::configs::debug
 
@@ -62,11 +58,19 @@ class kalimdor(
   } else {
       $ceph_ensure = absent
   }
+  # Set global options for Ceph
+  class {'kalimdor::configs::global':
+      ensure  => $ceph_ensure,
+  }
 
-  class {'ceph':
-      fsid                     => $kalimdor::configs::global::fsid,
-      ensure                   => $ceph_ensure,
-      authentication_type      => $authentication_type,
+  # Define keys on this nodes
+  class {'kalimdor::key':
+      cluster          => $cluster,
+      enable_mon       => $enable_mon,
+      enable_osd       => $enable_osd,
+      enable_mds       => $enable_mds,
+      enable_rgw       => $enable_rgw,
+      enable_client    => $enable_client, 
   }
 
   # Whether enable Monitor on this nodes?
@@ -84,28 +88,20 @@ class kalimdor(
   class {'kalimdor::osd':
       cluster              => $cluster,
       ensure               => $ensure_osd,
-      enable_dangerous_operation => $enable_dangerous_operation,
   }
 
-  if $ensure_mds == present {
-    $mds_activate = true
-  } else {
-    $mds_activate = false
-  }
   class { "kalimdor::mds":
-      mds_activate         => $mds_activate,
+      mds_activate         => $enable_mds,
       mds_name             => $host,
   }
 
-  if $ensure_rgw == present  {
-     class { 'kalimdor::rgw':
-          rgw_enable           => true,
-     }
+  class { 'kalimdor::rgw':
+      rgw_enable           => $enable_rgw,
   }
 
-  if $ensure_client == present {
+  if $enable_client{
       class {"kalimdor::client":
           cluster => $cluster,
-      }   
+      }
   }
 }

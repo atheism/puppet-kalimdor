@@ -1,5 +1,5 @@
 class kalimdor::params {
-  $release                                  = 'Brozebeard'
+  $release                                  = 'Bronzebeard'
 
   $admin_key                                = 'AQCTg71RsNIHORAAW+O6FCMZWBjmVfMIPk3MhQ=='
   $mon_key                                  = 'AQDesGZSsC7KJBAAw+W/Z4eGSQGAIbxWjxjvfw=='

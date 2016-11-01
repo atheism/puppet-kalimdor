@@ -1,6 +1,8 @@
-class kalimdor::options::rgw {
+class kalimdor::configs::rgw(
+  $rgw_name   = undef,
+){
 
-  $rgw_options = {
+  $rgw_configs = {
       # rgw performance options
       rgw_override_bucket_index_max_shards  => 0,
       rgw_cache_enabled                     => true,
@@ -33,5 +35,12 @@ class kalimdor::options::rgw {
       rgw_ldap_dnattr                      => undef,
       rgw_ldap_secret                      => undef,
       rgw_s3_auth_use_ldap                 => false,
+  }
+
+  $rgw_configs_in_hiera = hiera('kalimdor::rgw', {})
+  $rgw_final_configs = merge($rgw_configs, $rgw_configs_in_hiera)
+ 
+  kalimdor::configs::configs_impl {'client.radosgw.${rgw_name}':
+      configs       => $rgw_final_configs,
   }
 }

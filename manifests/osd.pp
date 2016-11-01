@@ -5,27 +5,30 @@
 #
 # == Class: kalimdor::osd
 #
-# Init Nodes with Daemon -- Ceph OSD 
+# Init Nodes with Daemon -- Ceph OSD
+#
+# === Parameters:
+#
+# [*cluster*] The ceph cluster's name
+#   Mandatory. Defaults to 'ceph' Passed by init.pp
+#
+# [*ensure*] Installs ( present ) or remove ( absent ) a MON
+#   Optional. Defaults to present.
+#   If set to absent, it will stop the MON service and remove
+#   the associated data directory.
+#
+# [*osd_devices*] Define devices which are used to make osds
+#   Optional. Default to empty.
+#
+# [*osd_disk_type*] 
+
 
 class kalimdor::osd (
   $cluster,
   $ensure                 = present,
-  $osd_device_dict        = {},
-  $bootstrap_osd_key      = ::kalimdor::params::osd_bootstrap_key,
-  $enable_dangerous_operation = ::kalimdor::params::enable_dangerous_operation,
-  $osd_disk_type              = undef, 
+  $osd_devices            = {},
+  $osd_disk_type          = undef, 
 ){
-    include stdlib
-    include ::kalimdor::params
-    ceph::key { 'client.bootstrap-osd':
-        secret  => $bootstrap_osd_key,
-        cluster => $cluster,
-        keyring_path => "/var/lib/ceph/bootstrap-osd/${cluster}.keyring",
-        cap_mon => 'allow profile bootstrap-osd',
-        user    => 'ceph',
-        group   => 'ceph',
-        inject => true,
-    }
 
     #set osd configuration in ceph.conf
     case $osd_disk_type {
@@ -45,23 +48,26 @@ class kalimdor::osd (
             }
         }
         default: {
-            fail("This module does not support ${disk_type} disk type!")
+            if $osd_disk_type {
+                fail("This module does not support ${osd_disk_type} disk type!")
+            } else {
+                fail("Empty osd_disk_type is not allowed!")
+            }
         }
     }
 
-    $osd_device_list = keys($osd_device_dict)
-    $osd_device_list.each |$key| {
+    validate_hash($osd_devices)
+    $osd_devices.each |$key, $val| {
 
         $osd_data_wwn_name = $key
         $osd_data_name = $::wwn_dev_name_hash["$osd_data_wwn_name"]
 
-        $items = split($osd_device_dict[$key], ':')
- 
-        $journal_device = $items[0]
-        $present_item = $items[1]
-        if !$enable_dangerous_operation {
-            $enable_osd     = present
-        } elsif size($items) == 2 and $items[1] == "absent" {
+        # before ':' is journal_device if defined
+        # after  ':' is whether osd is present if defined
+        $value_items = split($val, ':') 
+        $journal_device = $value_items[0]
+        $present_osd = $value_items[1]
+        if size($items) == 2 and $present_osd == "absent" {
             $enable_osd     = absent
         } elsif $ensure == absent {
             $enable_osd     = absent
@@ -69,9 +75,9 @@ class kalimdor::osd (
             $enable_osd     = present
         }
 
-#        notify{"$osd_data_name": 
-#            message => "data_disk: $osd_data_name, journal_disk: $journal_device, status: $enable_osd"
-#        }
+        notify{"$osd_data_name": 
+            message => "data_disk: $osd_data_name, journal_disk: $journal_device, status: $enable_osd"
+        }
 
         if $journal_device == '' {
             

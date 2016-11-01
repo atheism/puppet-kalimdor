@@ -15,17 +15,6 @@ class kalimdor::mds (
         group  => 'ceph'
     }
 
-    ceph::key { "mds.${host}":
-        secret       => $mds_key,
-        cap_mon      => 'allow *',
-        cap_osd      => 'allow *',
-        cap_mds      => 'allow *',
-        user         => 'ceph',
-        group        => 'ceph',
-        keyring_path => "/var/lib/ceph/mds/$cluster-${host}/keyring",
-        inject       => true
-    }
-
     class { "::ceph::mds":
         mds_activate          => $mds_activate,
         mds_data              => $mds_data,

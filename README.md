@@ -15,19 +15,26 @@
 
 ## Overview
 
-A one-maybe-two sentence summary of what the module does/what problem it solves.
-This is your 30 second elevator pitch for your module. Consider including
-OS/Puppet version it works with.
+Currently, OpenStack puppet-ceph is still not easy to use. For example, if we need
+to define osds on mutiple nodes, we need to consider prepare keys, configurations,
+repo seperately. Therefore, Why cannot organize and serilaze all those actions to
+ease the usage complexity for the users. Kalimdor is just the project which is based
+on puppet-ceph, but ease user's complexity.
 
 ## Module Description
 
-If applicable, this section should have a brief description of the technology
-the module integrates with and what that integration enables. This section
-should answer the questions: "What does this module *do*?" and "Why would I use
-it?"
-
-If your module has a range of functionality (installation, configuration,
-management, etc.) this is the time to mention it.
+The module simplifies the process of using puppet-ceph. Cluster' name, enable_mon,
+enable_osd, enable_mds, enable_rgw, enable_client is the only parameters in the
+main entry. By using enable_{roles}, we can define roles on each nodes and make that
+node acts as its roles.
+In addition, Directory -- Configs is used to manage the ceph's configuration. Currently,
+in puppet-ceph, we need to use class conf or ceph_config to setting configuration in
+ceph.conf. It is quite inconvenient to overwrite the configurations in ceph.conf and
+manager the configuration for each roles. What we done in configs solves this problems.
+Based on the design, there are priorities to setting configurations in the conf file.
+First prorioties is the configs defined in the hiera while the second priority is the
+default values defined in kalimdor. Furthermore, for osd configs, it can depend on the
+type of disk used on the host.
 
 ## Setup
 
@@ -39,41 +46,47 @@ management, etc.) this is the time to mention it.
 * Can be in list or paragraph form.
 
 ### Setup Requirements **OPTIONAL**
+We follow the OS compatibility of Ceph. With the release of jewel this is currently:
 
-If your module requires anything extra before setting up (pluginsync enabled,
-etc.), mention it here.
-
-### Beginning with kalimdor
-
-The very basic steps needed for a user to get the module up and running.
-
-If your most recent release breaks compatibility or requires particular steps
-for upgrading, you may wish to include an additional section here: Upgrading
-(For an example, see http://forge.puppetlabs.com/puppetlabs/firewall).
+CentOS 7 or later
 
 ## Usage
 
-Put the classes, types, and resources for customizing, configuring, and doing
-the fancy stuff with your module here.
+site.pp
+-------
 
-## Reference
+node /server-69.3.dev3.ustack.in/{
+    class {"kalimdor::cluster": }
+}
 
-Here, list the classes, types, providers, facts, etc contained in your module.
-This section should include all of the under-the-hood workings of your module so
-people know what the module is touching on their system but don't need to mess
-with things. (We are working on automating this section!)
+hiera for one node
+-------
 
-## Limitations
+kalimdor::global:
+  fsid: 066F558C-6789-4A93-AAF1-5AF1BA01A3AD
+  mon_host: 192.168.1.4
+  mon_initial_members: yidong-ceph-1
+  authentication_type: cephx 
+  public_network: 192.168.1.0/24
+  cluster_network: 192.168.1.0/24
+  osd_journal_size: 15360
 
-This is where you list OS compatibility, version compatibility, etc.
+kalimdor::debug:
+  debug_osd: '0/0'
+  debug_ms:  '0/0'
+  debug_optracker: '0/0'
 
-## Development
+kalimdor::osd:
+  filestore_fadvise: false
 
-Since your module is awesome, other users will want to play with it. Let them
-know what the ground rules for contributing are.
+kalimdor::configs::debug::enable_default_debug: true
 
-## Release Notes/Contributors/Etc **Optional**
+kalimdor::enable_mon: true
+kalimdor::enable_osd: true
+kalimdor::enable_mds: true
+kalimdor::enable_rgw: true
 
-If you aren't using changelog, put your release notes here (though you should
-consider using changelog). You may also add any additional sections you feel are
-necessary or important to include here. Please use the `## ` header.
+kalimdor::osd::osd_disk_type: sata
+kalimdor::osd::osd_devices:
+  "virtio-8be32092-44c9-4191-b": ":absent"
+  "virtio-e98d86c5-d5de-47d1-b": ":absent"

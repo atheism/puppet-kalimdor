@@ -18,9 +18,18 @@ class kalimdor::rgw (
 
     if $rgw_enable {
         $rgw_ensure   = 'running'
+
+        ceph::key { "client.radosgw.${rgw_name}":
+            secret       => $kalimdor::params::admin_key,
+            cluster      => $cluster,
+            cap_mon      => 'allow *',
+            cap_osd      => 'allow *',
+            inject       => true
+        } 
     } else {
         $rgw_ensure   = 'stopped'
     }
+    
 
     ceph::rgw { "radosgw.${rgw_name}":
         rgw_ensure         => $rgw_ensure,

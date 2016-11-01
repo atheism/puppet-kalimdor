@@ -31,18 +31,6 @@ class kalimdor::key(
           group   => 'ceph',
           inject => true,
       }
-
-      ceph::key { "mds.${host}":
-          secret       => $mds_key,
-          cluster      => $cluster,
-          cap_mon      => 'allow *',
-          cap_osd      => 'allow *',
-          cap_mds      => 'allow *',
-          user         => 'ceph',
-          group        => 'ceph',
-          keyring_path => "/var/lib/ceph/mds/$cluster-${host}/keyring",
-          inject       => true
-      }
   }
 
   if $enable_rgw {
@@ -57,13 +45,6 @@ class kalimdor::key(
           inject => true,
       }
 
-      ceph::key { "client.radosgw.${rgw_name}":
-          secret       => $kalimdor::params::admin_key,
-          cluster      => $cluster,
-          cap_mon      => 'allow *',
-          cap_osd      => 'allow *',
-          inject       => true
-      }
   }
 
   # client.admin keyrings can only define once on each node

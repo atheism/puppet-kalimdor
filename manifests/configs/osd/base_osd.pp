@@ -85,6 +85,7 @@ class kalimdor::configs::osd::base_osd {
     journal_throttle_high_threshhold => undef,
     journal_throttle_high_multiple   => 1,
     journal_throttle_max_multiple    => 2,
+    osd_journal_size                 => 10240,
 
     # osd filestore
     filestore_omap_header_cache_size     => 10240,

@@ -47,31 +47,29 @@ class kalimdor(
   include kalimdor::params
   include kalimdor::repo
 
+  # Install package Ceph
+  package { $::kalimdor::params::packages:
+    ensure => present,
+    tag    => 'ceph'
+  }
+
+  Package<| tag == 'ceph' |> -> Ceph_config<| |>
+
   # Set debug options for Ceph
   include kalimdor::configs::debug
 
+  # Set global options for Ceph
+  include kalimdor::configs::global
+
   # We don't want to use puppet-ceph Class Ceph, but need to deal with calling dependency
   # Any ceph roles is defined on this nodes
-  $enable_ceph = $enable_mon or $enable_osd or $enable_mds or $enable_rgw or $enable_client
-  if $enable_ceph {
-      $ceph_ensure = present
-  } else {
-      $ceph_ensure = absent
-  }
-  # Set global options for Ceph
-  class {'kalimdor::configs::global':
-      ensure  => $ceph_ensure,
-  }
-
-  # Define keys on this nodes
-  class {'kalimdor::key':
-      cluster          => $cluster,
-      enable_mon       => $enable_mon,
-      enable_osd       => $enable_osd,
-      enable_mds       => $enable_mds,
-      enable_rgw       => $enable_rgw,
-      enable_client    => $enable_client, 
-  }
+  #$enable_ceph = $enable_mon or $enable_osd or $enable_mds or $enable_rgw or $enable_client
+  #if $enable_ceph {
+  #    $ceph_ensure = present
+  #} else {
+  #    $ceph_ensure = absent
+  #}
+  
 
   # Whether enable Monitor on this nodes?
   if $enable_mon {
@@ -79,29 +77,30 @@ class kalimdor(
   } else {
       $mon_ensure = absent
   }
+
   class {'kalimdor::mon':
       cluster                  => $cluster,
       ensure                   => $mon_ensure,
       authentication_type      => $authentication_type,
   }
 
-  class {'kalimdor::osd':
-      cluster              => $cluster,
-      ensure               => $ensure_osd,
-  }
-
-  class { "kalimdor::mds":
-      mds_activate         => $enable_mds,
-      mds_name             => $host,
-  }
-
-  class { 'kalimdor::rgw':
-      rgw_enable           => $enable_rgw,
-  }
-
-  if $enable_client{
-      class {"kalimdor::client":
-          cluster => $cluster,
-      }
-  }
+#  class {'kalimdor::osds':
+#      cluster              => $cluster,
+#      ensure               => $ensure_osd,
+#  }
+#
+#  class { "kalimdor::mds":
+#      mds_activate         => $enable_mds,
+#      mds_name             => $host,
+#  }
+#
+#  class { 'kalimdor::rgw':
+#      rgw_enable           => $enable_rgw,
+#  }
+#
+#  if $enable_client{
+#      class {"kalimdor::client":
+#         cluster => $cluster,
+#      }
+#  }
 }

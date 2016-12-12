@@ -1,5 +1,6 @@
 class kalimdor::configs::rgw(
   $rgw_name   = undef,
+  $rgw_enable = true,
 ){
 
   $rgw_configs = {
@@ -42,5 +43,6 @@ class kalimdor::configs::rgw(
  
   kalimdor::configs::configs_impl {'client.radosgw.${rgw_name}':
       configs       => $rgw_final_configs,
+      enable        => $rgw_enable,
   }
 }

@@ -35,17 +35,8 @@
 class kalimdor::repo (
   $ensure              = present,
   $release             = $::kalimdor::params::release,
-  $enable_office_repo  = false,
   $repo_url            = "http://uds.ustack.com/repo"
 ) {
-
-  if $enable_office_repo {
-    class { 'ceph::repo':
-      ensure          => $ensure,
-      release         => $release,
-    }
-    notify{"Official Repository is Installed": message => "ceph realease: ${release}"}
-  } else {
     # Currently, Yum repo is the only supported repo type in Kalimdor
 
     if ($::operatingsystem == 'RedHat' or $::operatingsystem == 'CentOS') and (versioncmp($::operatingsystemmajrelease, '6') == 0) {
@@ -69,5 +60,4 @@ module ${module_name} only supports osfamily RedHat, Version 6/7")
       tag        => 'ceph',
     }
     notify{"UnitedStack Ceph Repository is Installed": message => "ceph realease: ${release}, url: $repo_url/${release}/el${el}"}
-  }
 }

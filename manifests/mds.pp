@@ -15,7 +15,7 @@ class kalimdor::mds (
         group  => 'ceph'
     }
 
-    ceph::key { "mds.${host}":
+    kalimdor::key { "mds.${host}":
         secret       => $mds_key,
         cluster      => $cluster,
         cap_mon      => 'allow *',

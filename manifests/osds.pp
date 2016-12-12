@@ -23,7 +23,7 @@
 # [*osd_disk_type*] 
 
 
-class kalimdor::osd (
+class kalimdor::osds (
   $cluster,
   $ensure                 = present,
   $osd_devices            = {},

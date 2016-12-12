@@ -14,18 +14,18 @@
 
 define kalimdor::configs::configs_impl(
   $configs,
+  $enable = true,
 ) {
     $configs.each |$key, $val| {
- 
         # set configs in ceph.conf
-        if $val != '' {
+        if $val != '' and $enable {
             ceph_config {
                 "$name/${key}":   value => $val;
-            }   
+            }
         } else {
             ceph_config {
                 "$name/${key}":   ensure => absent;
-            }   
-        }   
+            }
+        }
     }
 }

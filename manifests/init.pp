@@ -74,10 +74,10 @@ class kalimdor(
       authentication_type      => $authentication_type,
   }
 
-#  class {'kalimdor::osds':
-#      cluster              => $cluster,
-#      ensure               => $ensure_osd,
-#  }
+  class {'kalimdor::osds':
+      cluster              => $cluster,
+      ensure               => $ensure_osd,
+  }
 #
 #  class { "kalimdor::mds":
 #      mds_activate         => $enable_mds,

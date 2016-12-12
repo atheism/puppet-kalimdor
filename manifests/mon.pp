@@ -231,9 +231,11 @@ test ! -e ${keyring_path}
           inject         => true,
           inject_as_id   => 'mon.',
           inject_keyring => "/var/lib/ceph/mon/${cluster}-${id}/keyring",
+        } ->
+        class {'kalimdor::bootstrap_keys':
+          cluster => $cluster,
         }
       }
-
     } elsif $ensure == absent {
       service { $mon_service:
         ensure => stopped

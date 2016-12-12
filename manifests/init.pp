@@ -61,16 +61,6 @@ class kalimdor(
   # Set global options for Ceph
   include kalimdor::configs::global
 
-  # We don't want to use puppet-ceph Class Ceph, but need to deal with calling dependency
-  # Any ceph roles is defined on this nodes
-  #$enable_ceph = $enable_mon or $enable_osd or $enable_mds or $enable_rgw or $enable_client
-  #if $enable_ceph {
-  #    $ceph_ensure = present
-  #} else {
-  #    $ceph_ensure = absent
-  #}
-  
-
   # Whether enable Monitor on this nodes?
   if $enable_mon {
       $mon_ensure = present

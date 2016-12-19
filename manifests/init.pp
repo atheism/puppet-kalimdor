@@ -50,7 +50,7 @@ class kalimdor(
   # Install package Ceph
   package { $::kalimdor::params::packages:
     ensure => present,
-    tag    => 'ceph'
+    tag    => 'ceph',
   }
 
   Package<| tag == 'ceph' |> -> Ceph_config<| |>
@@ -74,9 +74,15 @@ class kalimdor(
       authentication_type      => $authentication_type,
   }
 
+  # Whether enable OSD on this nodes?
+  if $enable_osd {
+      $osd_ensure = present
+  } else {
+      $osd_ensure = absent
+  }
   class {'kalimdor::osds':
       cluster              => $cluster,
-      ensure               => $ensure_osd,
+      ensure               => $osd_ensure,
   }
 #
 #  class { "kalimdor::mds":
@@ -87,10 +93,12 @@ class kalimdor(
 #  class { 'kalimdor::rgw':
 #      rgw_enable           => $enable_rgw,
 #  }
-#
-#  if $enable_client{
-#      class {"kalimdor::client":
-#         cluster => $cluster,
-#      }
-#  }
+
+  
+  $need_enable_client= !$enable_mon and ($enable_osd or $enable_mds or $enable_rgw or $enable_client)
+  if $need_enable_client {
+      class {"kalimdor::client":
+         cluster => $cluster,
+      }
+  }
 }

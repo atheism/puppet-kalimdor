@@ -67,7 +67,7 @@ class kalimdor::osds (
         $value_items = split($val, ':') 
         $journal_device = $value_items[0]
         $present_osd = $value_items[1]
-        if size($items) == 2 and $present_osd == "absent" {
+        if size($value_items) == 2 and $present_osd == "absent" {
             $enable_osd     = absent
         } elsif $ensure == absent {
             $enable_osd     = absent
@@ -81,7 +81,7 @@ class kalimdor::osds (
 
         if $journal_device == '' {
             
-            ceph::osd { $osd_data_name:
+            kalimdor::osd { $osd_data_name:
                 ensure           => $enable_osd,
                 cluster          => $cluster,
             }
@@ -90,7 +90,7 @@ class kalimdor::osds (
             $osd_journal_wwn = $journal_device
             $osd_journal_name = $::wwn_dev_name_hash[$osd_journal_wwn]
 
-            ceph::osd { $osd_data_name:
+            kalimdor::osd { $osd_data_name:
                 ensure           => $enable_osd,
                 journal          => $osd_journal_name,
                 cluster          => $cluster,
@@ -103,8 +103,8 @@ class kalimdor::osds (
 set -ex
 ceph-disk zap ${osd_data_name} &> /dev/null
 ",
-                require          => Ceph::Osd[$osd_data_name],
-            }   
-        }  
+                require          => Kalimdor::Osd[$osd_data_name],
+            }
+        }
     }
 }

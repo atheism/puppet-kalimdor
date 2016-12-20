@@ -61,6 +61,9 @@ class kalimdor(
   # Set global options for Ceph
   include kalimdor::configs::global
 
+  # Set client options for Ceph
+  include kalimdor::configs::client
+
   # Whether enable Monitor on this nodes?
   if $enable_mon {
       $mon_ensure = present

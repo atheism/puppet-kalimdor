@@ -1,59 +1,65 @@
 class kalimdor::mds (
-  $mds_activate          = true,
+  $ensure                = present,
   $cluster               = 'ceph',
-  $mds_data              = '/var/lib/ceph/mds/$cluster-$id',
-  $keyring               = '/var/lib/ceph/mds/$cluster-$id/keyring',
-  $mds_name              = $::hostname,
   $host                  = $::hostname,
-  $mds_key               = 'AQABsWZSgEDmJhAAkAGSOOAJwrMHrM5Pz5On1A==',
+  $mds_key               = $::kalimdor::params::mds_key,
 ) {
+    $mds_dir = "${cluster}-${host}"
+    $mds_name = "${host}"
+    $mds_data = "/var/lib/ceph/mds/${mds_dir}"
+    $keyring = "/var/lib/ceph/mds/${mds_dir}/keyring"
 
-    $mds_keyring = "/var/lib/ceph/mds/$cluster-${host}"
-    file { $mds_keyring:
+    if $ensure == 'present' {
+      file { $mds_data:
         ensure => 'directory',
         owner  => 'ceph',
         group  => 'ceph'
+      } -> Kalimdor::Key["mds.${mds_name}"]
+      Kalimdor::Key["client.admin"] -> Kalimdor::Key["mds.${mds_name}"]
+      kalimdor::key { "mds.${mds_name}":
+          secret       => $mds_key,
+          cluster      => $cluster,
+          cap_mon      => 'allow profile mds',
+          cap_osd      => 'allow rwx',
+          cap_mds      => 'allow *',
+          user         => 'ceph',
+          group        => 'ceph',
+          keyring_path => $keyring,
+          inject       => true
+      }
+
+      Service {
+        name   => "ceph-mds@$mds_name",
+        enable => true,
+      }
+
+      ceph_config {
+        'mds/host':     value => $host;
+        'mds/mds_data': value => $mds_data;
+        'mds/keyring':  value => $keyring;
+      }
+
+      service { $mds_name:
+        ensure => true,
+        tag    => ['ceph-mds']
+      }
+    } elsif $ensure == absent {
+      Service {
+        name   => "ceph-mds@$mds_name",
+        enable => false,
+      }
+      
+      service { $mds_name:
+        ensure => false,
+        tag    => ['ceph-mds']
+      }
+      
+      ceph_config {
+        'mds/host':     ensure => absent;
+        'mds/mds_data': ensure => absent;
+        'mds/keyring':  ensure => absent;
+      } -> Ceph::Mon<| ensure == absent |>
+    } else {
+      fail('Ensure on MDS must be either present or absent')
     }
-
-    kalimdor::key { "mds.${host}":
-        secret       => $mds_key,
-        cluster      => $cluster,
-        cap_mon      => 'allow *',
-        cap_osd      => 'allow *',
-        cap_mds      => 'allow *',
-        user         => 'ceph',
-        group        => 'ceph',
-        keyring_path => "/var/lib/ceph/mds/$cluster-${host}/keyring",
-        inject       => true
-    }
-
-    Service {
-      name   => "ceph-mds@${mds_name}",
-      enable => $mds_activate,
-    }
-
-    class { "::ceph::mds":
-        mds_activate          => $mds_activate,
-        mds_data              => $mds_data,
-        keyring               => $keyring,
-    } ->
-
-    ceph_config {
-        "mds.${mds_name}/host":     value => $host;
-        "mds.${mds_name}/mds_data": value => "/var/lib/ceph/mds/ceph-${mds_name}";
-        "mds.${mds_name}/keyring":  value => "/var/lib/ceph/mds/ceph-${mds_name}/keyring";
-    } ->
-
-    service { $mds_name:
-      ensure => $mds_activate,
-      tag    => ['ceph-mds']
-    }
-
-
-    #service { "mds.${mds_name}":
-    #    ensure => running,
-    #    start  => "systemctl start ceph-mds@${mds_name}",
-    #    stop   => "systemctl stop ceph-mds@${mds_name}",
-    #    status => "systemctl status ceph-mds@${mds_name}",
-    #}
 }

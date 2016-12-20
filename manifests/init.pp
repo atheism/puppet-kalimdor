@@ -84,17 +84,23 @@ class kalimdor(
       cluster              => $cluster,
       ensure               => $osd_ensure,
   }
-#
-#  class { "kalimdor::mds":
-#      mds_activate         => $enable_mds,
-#      mds_name             => $host,
-#  }
-#
+
+
+  
+  if $enable_mds {
+      $mds_ensure = present
+  } else {
+      $mds_ensure = absent
+  }
+  class { "kalimdor::mds":
+      cluster        => $cluster,
+      ensure         => $mds_ensure,
+  }
+
 #  class { 'kalimdor::rgw':
 #      rgw_enable           => $enable_rgw,
 #  }
 
-  
   $need_enable_client= !$enable_mon and ($enable_osd or $enable_mds or $enable_rgw or $enable_client)
   if $need_enable_client {
       class {"kalimdor::client":

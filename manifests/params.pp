@@ -4,6 +4,7 @@ class kalimdor::params(
   # admin_key should be defined manually
   $admin_key,
   $mon_key                                  = 'AQDesGZSsC7KJBAAw+W/Z4eGSQGAIbxWjxjvfw==',
+  $mds_key                                  = 'AQABsWZSgEDmJhAAkAGSOOAJwrMHrM5Pz5On1A==',
   $osd_bootstrap_key                        = 'AQAj2zpXuKuSDhAA3lJI2A3IAd72Ze9Q4M58jg==',
   $mds_bootstrap_key                        = 'AQABsWZSgEDmJhAAkAGSOOAJwrMHrM5Pz5On1A==',
   $rgw_bootstrap_key                        = 'AQCTg71RsNIHORAAW+O6FCMZWBjmVfMIPk3MhQ==',

@@ -44,7 +44,7 @@
 #   Defaults to 'swift::object-store'
 #
 
-class ceph::rgw::keystone::auth (
+class kalimdor::rgw::keystone::auth (
   $password,
   $user         = 'rgwuser',
   $email        = 'rgwuser@localhost',

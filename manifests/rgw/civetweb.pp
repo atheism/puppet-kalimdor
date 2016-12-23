@@ -21,7 +21,7 @@
 # [*rgw_frontends*] Arguments to the rgw frontend
 #   Optional. Default is undef. Example: "civetweb port=7480"
 #
-define ceph::rgw::civetweb (
+define kalimdor::rgw::civetweb (
   $rgw_frontends = undef,
 ) {
 

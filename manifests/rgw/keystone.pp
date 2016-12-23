@@ -72,7 +72,7 @@
 # [*rgw_keystone_admin_password*] The password for OpenStack admin user
 #   Required if rgw_keystone_version is 'v3'.
 
-define ceph::rgw::keystone (
+define kalimdor::rgw::keystone (
   $rgw_keystone_admin_token         = undef,
   $rgw_keystone_url                 = 'http://127.0.0.1:5000',
   $rgw_keystone_version             = 'v2.0',

@@ -2,7 +2,7 @@ class kalimdor::configs::osd::base_osd {
 
   $osd_configs = {
     # osd management
-    osd_crush_update_on_start         => 'false',    
+    osd_crush_update_on_start         => 'false',
 
     # osd client
     osd_client_message_cap            => undef,

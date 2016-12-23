@@ -7,10 +7,11 @@ class kalimdor::configs::rgw(
       # rgw performance options
       rgw_override_bucket_index_max_shards  => 0,
       rgw_cache_enabled                     => true,
-      rgw_cache_lru_size                    => 10000,
-      rgw_num_rados_handles                 => 1,
+      rgw_cache_lru_size                    => 100000,
+      rgw_num_rados_handles                 => 20,
       rgw_swift_token_expiration            => 86400,
-      rgw_thread_pool_size                  => 8,
+      rgw_thread_pool_size                  => 256,
+      rgw_enable_usage_log                  => true,
 
       # keystone auth options
       rgw_keystone_url                     => "http://keyston.com:35357/",

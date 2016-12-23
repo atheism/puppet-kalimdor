@@ -39,9 +39,7 @@ class kalimdor::repo (
 ) {
     # Currently, Yum repo is the only supported repo type in Kalimdor
 
-    if ($::operatingsystem == 'RedHat' or $::operatingsystem == 'CentOS') and (versioncmp($::operatingsystemmajrelease, '6') == 0) {
-      $el = '6'
-    } elsif ($::operatingsystem == 'RedHat' or $::operatingsystem == 'CentOS') and (versioncmp($::operatingsystemmajrelease, '7') == 0) {
+    if ($::operatingsystem == 'RedHat' or $::operatingsystem == 'CentOS') and (versioncmp($::operatingsystemmajrelease, '7') == 0) {
       $el = '7'
     } else {
       fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, \

@@ -1,102 +1,116 @@
 class kalimdor::rgw (
-  $rgw_enable         = true,
-  $rgw_ensure         = 'running',
+  $cluster            = 'ceph',
+  $ensure             = present,
+  $rgw_key            = $::kalimdor::params::rgw_key,
+  $exec_timeout       = $::kalimdor::params::exec_timeout,
   ) {
 
   include kalimdor::params
 
+  # params we don't want to modified when deployed
+  $rgw_name           = "radosgw.$::hostname"
+  $rgw_data           = "/var/lib/ceph/radosgw/ceph-${rgw_name}"
+  $log_file           = "/var/log/ceph/radosgw.log"
+  $keyring = "$rgw_data/keyring"
+
   class {'kalimdor::configs::rgw':
       rgw_name        => $rgw_name,
-      rgw_enable      => $rgw_enable,
+      rgw_ensure      => $ensure,
   }
 
-  # params we don't want to modified when deployed
-
-  $rgw_name           = "radosgw.$::hostname"
-  $rgw_data           = "/var/lib/ceph/radosgw/ceph-${name}"
-  $log_file           = "/var/log/ceph/radosgw.log"
-
-  case $::kalimdor::params::release {
-    'Bronzebeard': {
-      $user = ceph
+  if $ensure == 'present' {
+  
+    unless $rgw_name =~ /^radosgw\..+/ {
+      fail("Define name must be started with 'radosgw.'")
     }
-    'Azeroth': {
-      $user = root
+  
+    # Install ceph-radosgw packages
+    package { $::kalimdor::params::pkg_radosgw:
+      ensure => $ensure,
+      tag    => 'ceph',
     }
-    default: {
-      fail("ceph release version = $::kalimdor::params::release is not supported")
+  
+    # Data directory for radosgw
+    file { '/var/lib/ceph/radosgw': # missing in redhat pkg
+      ensure                  => directory,
+      mode                    => '0755',
+      selinux_ignore_defaults => true,
     }
-  }
-
-  unless $rgw_name =~ /^radosgw\..+/ {
-    fail("Define name must be started with 'radosgw.'")
-  }
-
-  # Install ceph-radosgw packages
-  if $rgw_enable {
-    $package_
-  }
-  package { $::kalimdor::params::pkg_radosgw:
-    ensure => installed,
-    tag    => 'ceph',
-  }
-
-  # Data directory for radosgw
-  file { '/var/lib/ceph/radosgw': # missing in redhat pkg
-    ensure                  => directory,
-    mode                    => '0755',
-    selinux_ignore_defaults => true,
-  }
-  file { "/var/lib/ceph/radosgw/ceph-${rgw_name}":
-    ensure                  => directory,
-    owner                   => 'root',
-    group                   => 'root',
-    mode                    => '0750',
-    selinux_ignore_defaults => true,
-  }
-
-  # Log file for radosgw (ownership)
-  file { $log_file:
-    ensure                  => present,
-    owner                   => $user,
-    mode                    => '0640',
-    selinux_ignore_defaults => true,
-  }
-
-  # NOTE(aschultz): this is the radowsgw service title, it may be different
-  # than the actual service name
-  $rgw_service = "radosgw-${rgw_name}"
-
-  # service definition
-  if $::kalimdor::params::release == 'Azeroth' {
-    Service {
-      name     => "radosgw-${rgw_name}",
-      start    => "start radosgw id=${rgw_name}",
-      stop     => "stop radosgw id=${rgw_name}",
-      status   => "status radosgw id=${rgw_name}",
-      provider => "service",
+    file { $rgw_data:
+      ensure                  => directory,
+      owner                   => 'root',
+      group                   => 'root',
+      mode                    => '0750',
+      selinux_ignore_defaults => true,
     }
-  } elsif $::kalimdor::params::release == 'Bronzebeard' {
+  
+    # Log file for radosgw (ownership)
+    file { $log_file:
+      ensure                  => present,
+      owner                   => 'ceph',
+      mode                    => '0640',
+      selinux_ignore_defaults => true,
+    }
+
+    File["/var/lib/ceph/radosgw"] -> Kalimdor::Key["client.${rgw_name}"]
+    Kalimdor::Key["client.admin"] -> Kalimdor::Key["client.${rgw_name}"]
+    kalimdor::key { "client.${rgw_name}":
+      secret       => $rgw_key,
+      cluster      => $cluster,
+      cap_mon      => 'allow rw',
+      cap_osd      => 'allow rwx',
+      user         => 'ceph',
+      group        => 'ceph',
+      keyring_path => $keyring,
+      inject       => true
+    }
+  
+    # NOTE(aschultz): this is the radowsgw service title, it may be different
+    # than the actual service name
+    $rgw_service = "radosgw-${rgw_name}"
+  
+    # service definition
     Service {
       name   => "ceph-radosgw@${rgw_name}",
       provider => "systemd",
-      enable => $rgw_enable,
+      enable => true,
+    }
+  
+    service { $rgw_service:
+      ensure => 'running',
+      tag    => ['ceph-radosgw']
+    }
+
+    Ceph_config<||> ~> Service<| tag == 'ceph-radosgw' |>
+    Package<| tag == 'ceph' |> -> File['/var/lib/ceph/radosgw']
+    Package<| tag == 'ceph' |> -> File[$log_file]
+    File['/var/lib/ceph/radosgw']
+    -> File[$rgw_data]
+    -> Service<| tag == 'ceph-radosgw' |>
+    File[$log_file] -> Service<| tag == 'ceph-radosgw' |>
+  } elsif $ensure == absent {
+    $rgw_service = "radosgw-${rgw_name}"
+    # service definition
+    Service {
+      name   => "ceph-radosgw@${rgw_name}",
+      provider => "systemd",
+      enable => false,
+    }
+
+    service { $rgw_service:
+      ensure => 'stopped',
+      tag    => ['ceph-radosgw']
+    }->
+    exec { "remove-rgw-${rgw_name}":
+      command   => "/bin/true # comment to satisfy puppet syntax requirements
+set -ex
+ceph auth del client.${rgw_name}
+rm -fr ${rgw_data}
+",
+      logoutput => true,
+      timeout   => $exec_timeout,
     }
   } else {
-    fail("ceph release version = $::kalimdor::params::release is not supported")
-  } 
-
-  service { $rgw_service:
-    ensure => $rgw_ensure,
-    tag    => ['ceph-radosgw']
+    fail('Ensure on RGW must be either present or absent')
   }
-
-  Ceph_config<||> ~> Service<| tag == 'ceph-radosgw' |>
-  Package<| tag == 'ceph' |> -> File['/var/lib/ceph/radosgw']
-  Package<| tag == 'ceph' |> -> File[$log_file]
-  File['/var/lib/ceph/radosgw']
-  -> File[$rgw_data]
-  -> Service<| tag == 'ceph-radosgw' |>
-  File[$log_file] -> Service<| tag == 'ceph-radosgw' |>
-
 }

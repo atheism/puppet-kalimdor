@@ -1,6 +1,6 @@
 class kalimdor::configs::rgw(
   $rgw_name   = undef,
-  $rgw_enable = true,
+  $rgw_ensure = present,
 ){
 
   $rgw_configs = {
@@ -41,8 +41,15 @@ class kalimdor::configs::rgw(
 
   $rgw_configs_in_hiera = hiera('kalimdor::rgw', {})
   $rgw_final_configs = merge($rgw_configs, $rgw_configs_in_hiera)
- 
-  kalimdor::configs::configs_impl {'client.radosgw.${rgw_name}':
+
+  if $rgw_ensure == 'present' {
+    $rgw_enable = true
+  } elsif $rgw_ensure == 'absent'{
+    $rgw_enable = false
+  } else {
+    fail('Ensure on RGW must be either present or absent')    
+  }
+  kalimdor::configs::configs_impl {"client.radosgw.${rgw_name}":
       configs       => $rgw_final_configs,
       enable        => $rgw_enable,
   }

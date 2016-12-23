@@ -53,7 +53,15 @@ class kalimdor::mds (
         ensure => false,
         tag    => ['ceph-mds']
       }
-      
+      exec { "remove-mds-${mds_name}":
+        command   => "/bin/true # comment to satisfy puppet syntax requirements
+set -ex
+ceph auth del mds.${mds_name}
+rm -fr ${mds_data}
+",
+        logoutput => true,
+        timeout   => $exec_timeout,
+      } 
       ceph_config {
         'mds/host':     ensure => absent;
         'mds/mds_data': ensure => absent;

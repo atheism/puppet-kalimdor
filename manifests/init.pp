@@ -88,8 +88,6 @@ class kalimdor(
       ensure               => $osd_ensure,
   }
 
-
-  
   if $enable_mds {
       $mds_ensure = present
   } else {
@@ -100,9 +98,15 @@ class kalimdor(
       ensure         => $mds_ensure,
   }
 
-#  class { 'kalimdor::rgw':
-#      rgw_enable           => $enable_rgw,
-#  }
+  if $enable_rgw {
+      $rgw_ensure = present
+  } else {
+      $rgw_ensure = absent
+  }
+  class { 'kalimdor::rgw':
+      cluster        => $cluster,
+      ensure         => $rgw_ensure,
+  }
 
   $need_enable_client= !$enable_mon and ($enable_osd or $enable_mds or $enable_rgw or $enable_client)
   if $need_enable_client {

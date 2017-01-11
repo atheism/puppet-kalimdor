@@ -11,7 +11,47 @@ class kalimdor::configs::rgw(
       rgw_num_rados_handles                 => 20,
       rgw_swift_token_expiration            => 86400,
       rgw_thread_pool_size                  => 256,
+      rgw_bucket_index_max_aio              => 8,
+
+      #object
+      rgw_obj_stripe_size                   => 4194304,
+      rgw_exit_timeout_secs                 => 120,
+      rgw_get_obj_window_size               => 16777216,
+      rgw_get_obj_max_req_size              => 4194304,
+
+      #multipart
+      rgw_multipart_min_part_size           => 5242880,
+      rgw_olh_pending_timeout_sec           => 3600,
+
+      #gc
+      rgw_enable_gc_threads                 => true,
+      rgw_gc_max_objs                       => 32,
+      rgw_gc_obj_min_wait                   => 7200,
+      rgw_gc_processor_max_time             => 3600,
+      rgw_gc_processor_period               => 3600,
+
+      #quota, usage and log
+      rgw_enable_quota_threads              => true,
+      rgw_user_max_buckets                  => 1000,
+      rgw_bucket_quota_ttl                  => 600,
+      rgw_bucket_quota_soft_threshold       => 0.95,
+      rgw_bucket_quota_cache_size           => 10000,
+      rgw_user_quota_bucket_sync_interval   => 180,
+      rgw_user_quota_sync_interval          => 86400,
+      rgw_user_quota_sync_idle_users        => false,
+      rgw_user_quota_sync_wait_time         => 86400,
+      rgw_usage_max_shards                  => 32,
+      rgw_usage_max_user_shards             => 1,
       rgw_enable_usage_log                  => true,
+      rgw_enable_ops_log                    => false,
+      rgw_ops_log_rados                     => true,
+      rgw_ops_log_data_backlog              => 5242880,
+      rgw_usage_log_flush_threshold         => 1024,
+      rgw_usage_log_tick_interval           => 30,
+      rgw_md_log_max_shards                 => 6
+      rgw_data_log_window                   => 30
+      rgw_data_log_changes_size             => 1000
+      rgw_data_log_num_shards               => 128
 
       # keystone auth options
       rgw_keystone_url                     => "http://keyston.com:35357/",
